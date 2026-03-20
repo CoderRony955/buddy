@@ -1,0 +1,12 @@
+[project]
+name = "buddy"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "pyqt6>=6.10.2",
+    "qtawesome>=1.4.1",
+    "requests>=2.32.5",
+]
