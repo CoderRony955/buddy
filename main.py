@@ -1,19 +1,20 @@
 ﻿import sys
 
-from PyQt6.QtCore import QEasingCurve, QParallelAnimationGroup, QPropertyAnimation
+from PyQt6.QtCore import QEasingCurve, QParallelAnimationGroup, QPropertyAnimation, Qt
 from PyQt6.QtWidgets import (
     QApplication,
     QFrame,
     QHBoxLayout,
+    QLabel,
     QMainWindow,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
-from PyQt6.QtGui import QFont, QIcon
-from PyQt6.QtCore import QSize
-from src.screens.screens import Screen
+from PyQt6.QtGui import QFont, QIcon, QCursor
+from PyQt6.QtCore import QSize, Qt
+from src.screens.giveaway_screens.screens import Screen
 import qtawesome as qta
 from style import styling
 
@@ -25,10 +26,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("buddy")
-        self.setFixedSize(640, 700)
+        self.setFixedSize(580, 640)
 
         self._is_sidebar_open = True
         self._menu_buttons = []
+        self._menu_section_labels = []
         self._page_index = {}
 
         self._build_ui()
@@ -59,18 +61,23 @@ class MainWindow(QMainWindow):
         sidebar_layout.addWidget(self.menu_toggle_btn)
 
         nav_items = [
-            ("search", " Search", "fa5s.search", styling.search_btn, "white", Screen.search),
-            ("all", " All", "fa5s.tags", styling.all_free_games_section_btn, "black", Screen.all_games),
-            ("epic_games", " Epic Games", "./icons/epic_games.png", styling.epic_games_section_btn, "black", Screen.epic_games),
-            ("steam", " Steam", "fa6b.steam", styling.steam_section_btn, "white", Screen.steam),
-            ("ubisoft", " Ubisoft", "./icons/ubisoft.png", styling.ubisoft_section_btn, "black", Screen.ubisoft),
-            ("android", " Android", "fa6b.android", styling.android_section_btn, "green", Screen.android),
+            ("all", " Free Games", "fa5s.tags", styling.all_free_games_section_btn, "black", "All Free to Play Games", Screen.all_games),
+            ("ai", " Chatbot ", "fa5s.robot", styling.ai_chat_section_btn, "black", "AI powered chat", Screen.ai_chat),
+            ("epic_games", " Epic Games", "./icons/epic_games.png", styling.epic_games_section_btn, "black", "Epic Games Giveaways", Screen.epic_games),
+            ("steam", " Steam", "fa6b.steam", styling.steam_section_btn, "white", "Steam Giveaways", Screen.steam),
+            ("ubisoft", " Ubisoft", "./icons/ubisoft.png", styling.ubisoft_section_btn, "black", "Ubisoft Giveaways", Screen.ubisoft),
+            ("battlenet", " Battlenet", "./icons/battlenet.png", styling.battlenet_section_btn, "blue", "Battlenet Giveaways", Screen.battlenet),
+            ("xbox", " Xbox", "fa6b.xbox", styling.xbox_section_btn, "white", "Xbox Gaming Stuff Giveaways", Screen.xbox),
+            ("playstation", " PlayStation", "fa5b.playstation", styling.playstation_section_btn, "black", "PlayStation Gaming Stuff Giveaways", Screen.playstation),
+            ("switch", " Switch", "./icons/switch.png", styling.switch_section_btn, "white", "Switch Gaming Stuff Giveaways", Screen.switch),
+            ("android", " Android", "fa6b.android", styling.android_section_btn, "green", "Android Games Giveaways", Screen.android),
+            ("ios", " iOS", "fa6b.apple", styling.ios_section_btn, "white", "iOS Games Giveaways", Screen.ios),
         ]
 
         self.stack = QStackedWidget()
         self.stack.setObjectName("contentArea")
 
-        for key, label, icon, style, color, page_class in nav_items:
+        for key, label, icon, style, color, tooltip, page_class in nav_items:
             btn = QPushButton(label)
             if not icon.startswith("f"):
                 btn.setIcon(QIcon(icon))
@@ -79,6 +86,8 @@ class MainWindow(QMainWindow):
                 btn.setIcon(qta.icon(icon, color=color))
             btn.setFont(QFont("monospace", 14))
             btn.setObjectName(key)
+            btn.setToolTip(tooltip)
+            btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             btn.setCheckable(True)
             btn.setProperty("full_label", label)
             btn.setProperty("short_label", label[0])
@@ -90,6 +99,17 @@ class MainWindow(QMainWindow):
             page = page_class()
             page_idx = self.stack.addWidget(page)
             self._page_index[key] = page_idx
+
+            if key == "ai":
+                section_label = QLabel("Giveaways")
+                section_label.setProperty("full_label", "Giveaways")
+                section_label.setProperty("short_label", "-----")
+                section_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                section_label.setStyleSheet(
+                    "color: #8a8f99; font-size: 11px; font-weight: 600; letter-spacing: 1px; margin-top: 8px;"
+                )
+                sidebar_layout.addWidget(section_label)
+                self._menu_section_labels.append(section_label)
 
         sidebar_layout.addStretch(1)
 
@@ -146,6 +166,12 @@ class MainWindow(QMainWindow):
                 btn.setText(btn.property("full_label"))
             else:
                 btn.setText(btn.property("short_label"))
+
+        for label in self._menu_section_labels:
+            if self._is_sidebar_open:
+                label.setText(label.property("full_label"))
+            else:
+                label.setText(label.property("short_label"))
 
     def show_page(self, page_name: str) -> None:
         idx = self._page_index.get(page_name)

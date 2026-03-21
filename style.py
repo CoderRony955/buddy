@@ -66,9 +66,7 @@
                 background: #495c5a;
             }
             
-            QPushButton#search:pressed {
-                background: #394155;
-            }
+
     """
     all_free_games_section_btn = """
     
@@ -87,9 +85,6 @@
                 background: #4f614e;
             }
             
-            QPushButton#all:pressed {
-                background: #00ff04;
-            }
     """
 
     epic_games_section_btn = """
@@ -109,10 +104,6 @@
                 background: #c6ccc6;
             }
             
-    QPushButton#epic_games:pressed {
-                background: #c6ccc6;
-            }
-    
     """
 
     steam_section_btn = """
@@ -131,9 +122,6 @@
                 background: #292a38;
             }
             
-    QPushButton#steam:pressed {
-                background: #0b1438;
-            }
     
     """
 
@@ -154,10 +142,86 @@
                 color: black;
             }
             
-    QPushButton#ubisoft:pressed {
-                background: #394155;
+    
+    """
+    
+    battlenet_section_btn = """
+    QPushButton#battlenet {
+                min-height: 38px;
+                border-radius: 15px;
+                border: none;
+                padding: 0 14px;
+                color: black;
+                text-align: left;
+                font-size: 13px;
+                background: #fcfcfc;
+            }
+    
+    QPushButton#battlenet:hover {
+                background: #fcfcfc;
                 color: black;
             }
+            
+    
+    """
+    
+    xbox_section_btn = """
+    QPushButton#xbox {
+                min-height: 38px;
+                border-radius: 15px;
+                border: none;
+                padding: 0 14px;
+                color: white;
+                text-align: left;
+                font-size: 13px;
+                background: #000000;
+            }
+    
+    QPushButton#xbox:hover {
+                background: #242424;
+                color: white;
+            }
+            
+    
+    """
+    
+    playstation_section_btn = """
+    QPushButton#playstation {
+                min-height: 38px;
+                border-radius: 15px;
+                border: none;
+                padding: 0 14px;
+                color: black;
+                text-align: left;
+                font-size: 13px;
+                background: #ebebeb;
+            }
+    
+    QPushButton#playstation:hover {
+                background: #a8a7a5;
+                color: black;
+            }
+            
+    
+    """
+    
+    switch_section_btn = """
+    QPushButton#switch {
+                min-height: 38px;
+                border-radius: 15px;
+                border: none;
+                padding: 0 14px;
+                color: black;
+                text-align: left;
+                font-size: 13px;
+                background: #fcfcfc;
+            }
+    
+    QPushButton#switch:hover {
+                background: #a8a7a5;
+                color: black;
+            }
+            
     
     """
 
@@ -178,9 +242,42 @@
                 color: black;
             }
             
-    QPushButton#android:pressed {
-                background: #868a86;
-                color: black;
+    """
+    
+    ios_section_btn = """
+    QPushButton#ios {
+                min-height: 38px;
+                border-radius: 15px;
+                border: none;
+                padding: 0 14px;
+                color: white;
+                text-align: left;
+                font-size: 13px;
+                background: #000000;
             }
     
+    QPushButton#ios:hover {
+                background: #262626;
+                color: white;
+            }
+            
+    """
+    
+    ai_chat_section_btn = """
+    QPushButton#ai {
+                min-height: 38px;
+                border-radius: 15px;
+                border: none;
+                padding: 0 14px;
+                color: black;
+                text-align: left;
+                font-size: 13px;
+                background: #08ccc2;
+            }
+    
+    QPushButton#ai:hover {
+                background: #84d9d5;
+                color: black;
+            }
+            
     """
