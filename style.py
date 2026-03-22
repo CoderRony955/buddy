@@ -1,7 +1,12 @@
 ﻿class styling:
     body = """
             QMainWindow {
-                background: #eceff4;
+                background: qlineargradient(
+                    x1:0, y1:0,
+                    x2:1, y2:1,
+                    stop:0 #f7929e,
+                    stop:1 #9992f7
+                );
             }
 
             #sidebar {
@@ -33,7 +38,12 @@
             }
 
             #contentArea {
-                background: #f8f9fd;
+                background: qlineargradient(
+                    x1:0, y1:0,
+                    x2:1, y2:1,
+                    stop:0 #f7929e,
+                    stop:1 #9992f7
+                );
             }
 
             #screenTitle {
@@ -48,6 +58,8 @@
                 line-height: 1.4em;
             }
             """
+    
+    
 
     search_btn = """
     
@@ -281,3 +293,15 @@
             }
             
     """
+
+    toolbar = """
+    QToolBar {
+                border-radius: 20;
+                color: white;
+                text-align: left;
+                font-size: 13px;
+                background: #120106;
+            }
+           
+    """
+    
