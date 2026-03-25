@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "httpx>=0.28.1",
+    "pymongo>=4.16.0",
     "pyqt6>=6.10.2",
     "pyqt6-webengine>=6.10.0",
     "qtawesome>=1.4.1",
