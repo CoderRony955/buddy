@@ -1,5 +1,5 @@
 ﻿from .base_screen import BaseScreen
-from PyQt6.QtWidgets import QPushButton, QToolBar, QLineEdit, QHBoxLayout
+from PyQt6.QtWidgets import QPushButton, QToolBar, QLineEdit, QHBoxLayout, QMessageBox
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QAction, QIcon, QFont, QDesktopServices, QWheelEvent, QKeyEvent
 from PyQt6.QtWebEngineWidgets import QWebEngineView
@@ -9,8 +9,12 @@ import base64
 import qtawesome as qta
 import webbrowser
 import style
+import os
 
-# threads 
+# dialog
+from .dialogs import SaveToDBDialog
+
+# threads
 from ...fetchers import free_to_play_games
 
 
@@ -76,6 +80,7 @@ class AllGamesScreen(BaseScreen):
         self.db_save_action.setIcon(
             QIcon(qta.icon("fa5s.database", style="white")))
         toolbar.addAction(self.db_save_action)
+        self.db_save_action.triggered.connect(self.open_save_to_db_dialog)
 
         # search bar for searching any one specefic video game (free to play only from source)
         self.search_bar = QLineEdit()
@@ -84,7 +89,7 @@ class AllGamesScreen(BaseScreen):
         self.search_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.search_bar.setFixedSize(250, 36)
         self.search_bar.setStyleSheet(
-            "border-radius: 16px; background: #141414; color: white;")
+            "border-radius: 16px; background: #141414; color: white; border: 1px solid #30363d;")
 
         # search button
         search_btn = QPushButton()
@@ -121,6 +126,7 @@ class AllGamesScreen(BaseScreen):
         self.display_area = CustomWebEngineView()
         self.display_area.setPage(CustomWebEnginePage(self.display_area))
         self.display_area.setZoomFactor(1.0)
+        self.display_area.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         settings = self.display_area.settings()
         settings.setAttribute(
             QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True
@@ -159,11 +165,21 @@ class AllGamesScreen(BaseScreen):
 
     def display_games(self, games):
         self.display_area.setHtml(games)
-        
-        
+
     def search_free_to_play_games(self):
         from .html import loading_screen
         game_name = self.search_bar.text()
+        if not game_name:
+            title = "Empty input!"
+            message = "Please provide a any free-to-play video game to search from available source."
+            warn = QMessageBox()
+            warn.setWindowTitle(title)
+            warn.setText(message)
+            warn.setIcon(QMessageBox.Icon.Warning)
+            warn.setStandardButtons(QMessageBox.StandardButton.Ok)
+            warn.exec()
+            return
+
         self.display_area.setHtml(loading_screen.html)
         self.search = free_to_play_games.SearchGame(name=game_name)
         self.search.game.connect(self.display_game)
@@ -177,3 +193,20 @@ class AllGamesScreen(BaseScreen):
         if target.scheme() == "":
             target = QUrl(f"https://{target.toString().lstrip('/')}")
         QDesktopServices.openUrl(target)
+
+    def open_save_to_db_dialog(self):
+        from ...cache_data_files import free_to_play_games_data
+        if not os.path.exists(free_to_play_games_data):
+            # critical error message box
+            title = "Something went wrong!"
+            message = "Cannot perform this action because, cannot find ./data/free_to_play_games.json"
+            critical = QMessageBox()
+            critical.setWindowTitle(title)
+            critical.setText(message)
+            critical.setIcon(QMessageBox.Icon.Critical)
+            critical.setStandardButtons(QMessageBox.StandardButton.Close)
+            critical.exec()
+            return
+        
+        db_dialog = SaveToDBDialog.DBDialog(free_to_play_games_data)
+        db_dialog.exec()

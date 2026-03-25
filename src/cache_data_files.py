@@ -1,0 +1,1 @@
+free_to_play_games_data = "./data/free_to_play_games.json"
