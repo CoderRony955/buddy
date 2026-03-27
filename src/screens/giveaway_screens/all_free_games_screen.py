@@ -126,7 +126,8 @@ class AllGamesScreen(BaseScreen):
         self.display_area = CustomWebEngineView()
         self.display_area.setPage(CustomWebEnginePage(self.display_area))
         self.display_area.setZoomFactor(1.0)
-        self.display_area.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        self.display_area.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.NoContextMenu)
         settings = self.display_area.settings()
         settings.setAttribute(
             QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True
@@ -196,17 +197,23 @@ class AllGamesScreen(BaseScreen):
 
     def open_save_to_db_dialog(self):
         from ...cache_data_files import free_to_play_games_data
+        # check ./data dir if not exist then create one
+        os.makedirs("./data", exist_ok=True)
         if not os.path.exists(free_to_play_games_data):
-            # critical error message box
-            title = "Something went wrong!"
-            message = "Cannot perform this action because, cannot find ./data/free_to_play_games.json"
-            critical = QMessageBox()
-            critical.setWindowTitle(title)
-            critical.setText(message)
-            critical.setIcon(QMessageBox.Icon.Critical)
-            critical.setStandardButtons(QMessageBox.StandardButton.Close)
-            critical.exec()
+            # create ./data/free_to_play_games.json file
+            with open("./data/free_to_play_games.json", "w") as file:
+                file.write("[]")
+
+            # informational message box
+            title = "Data cache file empty!"
+            message = "newly ./data/free_to_play_games.json just created because, data cache not found! So, please refetch data then try again to insert data into Database."
+            informational = QMessageBox()
+            informational.setWindowTitle(title)
+            informational.setText(message)
+            informational.setIcon(QMessageBox.Icon.Information)
+            informational.setStandardButtons(QMessageBox.StandardButton.Ok)
+            informational.exec()
             return
-        
+
         db_dialog = SaveToDBDialog.DBDialog(free_to_play_games_data)
         db_dialog.exec()
