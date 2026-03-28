@@ -1,6 +1,9 @@
 # snippets test folder
 test/
 
+# configuration
+config.yaml
+
 # Python-generated files
 __pycache__/
 *.py[oc]
