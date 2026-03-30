@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QDialog, QLineEdit, QPushButton, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon, QCursor
 from ....ai_integration import providers
+from ....app_icon import app_window_icon
 import qtawesome as qta
 import yaml
 import os
@@ -16,6 +17,7 @@ class AuthDialog(QDialog):
             self.models_config = yaml.safe_load(file)
 
         self.setWindowTitle("Selection Model Provider")
+        self.setWindowIcon(app_window_icon())
         self.setFixedSize(420, 330)
         self.setModal(True)
 
@@ -89,7 +91,7 @@ class AuthDialog(QDialog):
 
         # Providers Combox
         self.providers = QComboBox()
-        self.providers.setPlaceholderText("Select Providers")
+        self.providers.setPlaceholderText("Select Provider")
         self.items = {
             "OpenAI": providers.OPENAI_API_KEY,
             "Google": providers.GOOGLE_GEN_AI_API_KEY,
@@ -179,6 +181,7 @@ class AuthDialog(QDialog):
 
     def warnMessageBox(self, title: str, message: str):
         warn = QMessageBox()
+        warn.setWindowIcon(app_window_icon())
         warn.setWindowTitle(title)
         warn.setText(message)
         warn.setIcon(QMessageBox.Icon.Warning)
@@ -187,6 +190,7 @@ class AuthDialog(QDialog):
 
     def errorMessageBox(self, title: str, message: str):
         critical = QMessageBox()
+        critical.setWindowIcon(app_window_icon())
         critical.setWindowTitle(title)
         critical.setText(message)
         critical.setIcon(QMessageBox.Icon.Critical)
@@ -195,6 +199,7 @@ class AuthDialog(QDialog):
 
     def infoMessageBox(self, title: str, message: str):
         info = QMessageBox()
+        info.setWindowIcon(app_window_icon())
         info.setWindowTitle(title)
         info.setText(message)
         info.setIcon(QMessageBox.Icon.Information)

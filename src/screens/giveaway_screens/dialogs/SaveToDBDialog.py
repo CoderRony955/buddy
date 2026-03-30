@@ -3,6 +3,7 @@ from PyQt6.QtGui import QFont, QIcon, QCursor
 from PyQt6.QtCore import Qt
 import qtawesome as qta
 from ...threads import feed_data
+from ....app_icon import app_window_icon
 import json
 
 class DBDialog(QDialog):
@@ -12,6 +13,7 @@ class DBDialog(QDialog):
             self.data = json.load(file)
             
         self.setWindowTitle("Save to MongoDB")
+        self.setWindowIcon(app_window_icon())
         self.setFixedSize(420, 330)
         self.setModal(True)
 
@@ -163,6 +165,7 @@ class DBDialog(QDialog):
         if isinstance(acknowledgment, tuple):
             # popup critical messagebox
             error = QMessageBox()
+            error.setWindowIcon(app_window_icon())
             error.setWindowTitle("Oops!")
             error.setText(str(acknowledgment[0]))
             error.setIcon(QMessageBox.Icon.Critical)
@@ -172,6 +175,7 @@ class DBDialog(QDialog):
         
         # otherwise popup informational messagebox for successful operation
         info = QMessageBox()
+        info.setWindowIcon(app_window_icon())
         info.setWindowTitle("Done!")
         info.setText(str(acknowledgment))
         info.setIcon(QMessageBox.Icon.Information)
@@ -186,6 +190,7 @@ class DBDialog(QDialog):
     
     def warnMessageBox(self, title: str, message: str):
         warn = QMessageBox()
+        warn.setWindowIcon(app_window_icon())
         warn.setWindowTitle(title)
         warn.setText(message)
         warn.setIcon(QMessageBox.Icon.Warning)
