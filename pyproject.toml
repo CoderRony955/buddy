@@ -5,12 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "auto-py-to-exe>=2.50.0",
     "httpx>=0.28.1",
     "langchain>=1.2.13",
     "langchain-anthropic>=1.4.0",
     "langchain-google-genai>=4.2.1",
-    "langchain-ollama>=1.0.1",
     "langchain-openai>=1.1.12",
+    "ollama>=0.6.1",
     "pymongo>=4.16.0",
     "pyqt6>=6.10.2",
     "pyqt6-webengine>=6.10.0",
