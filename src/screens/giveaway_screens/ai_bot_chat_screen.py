@@ -1,17 +1,19 @@
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont, QAction, QIcon
+from PyQt6.QtCore import Qt, QTimer, QPoint, QThread, pyqtSignal
+from PyQt6.QtGui import QFont, QAction, QIcon, QTextOption
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
+    QTextEdit,
+    QTextBrowser,
     QPushButton,
     QScrollArea,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
     QToolBar,
-    QMessageBox
+    QMessageBox,
+    QComboBox
 )
 
 from .base_screen import BaseScreen
@@ -23,6 +25,41 @@ import os
 # dialog
 from .dialogs import ModelAuthDialog
 
+# model chat integration
+from ...ai_integration import model
+from ...app_icon import app_window_icon
+
+# model chat worker (thread)
+from ..threads import model_worker
+
+
+class AutoResizeTextEdit(QTextEdit):
+    send_requested = pyqtSignal()
+
+    def keyPressEvent(self, event):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                super().keyPressEvent(event)
+                return
+            self.send_requested.emit()
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
+
+class UpwardComboBox(QComboBox):
+    def showPopup(self):
+        super().showPopup()
+
+        popup = self.view().window()  # dropdown window
+        combo_pos = self.mapToGlobal(QPoint(0, 0))
+
+        # Move popup above the combo box
+        popup.move(
+            combo_pos.x(),
+            combo_pos.y() - popup.height()
+        )
+
 
 class AIChatbotScreen(BaseScreen):
     def __init__(self):
@@ -31,6 +68,15 @@ class AIChatbotScreen(BaseScreen):
             "Chat with AI Bot to ask for games recommendation and much more.",
         )
 
+        self.provider = None
+        self.chat_client = model.Chat()
+        self.chat_worker = None
+        self.typing_timer = QTimer(self)
+        self.typing_timer.setInterval(350)
+        self.typing_timer.timeout.connect(self._update_typing_indicator)
+        self.typing_bubble = None
+        self.typing_dot_count = 0
+        self.bot_bubbles = []
         layout = self.layout()
 
         # toolbar
@@ -89,25 +135,53 @@ class AIChatbotScreen(BaseScreen):
         input_layout.setContentsMargins(8, 8, 8, 8)
         input_layout.setSpacing(8)
 
-        self.message_input = QLineEdit()
+        self.message_input = AutoResizeTextEdit()
         self.message_input.setPlaceholderText("Type your message...")
         self.message_input.setFont(QFont("monospace", 10))
         self.message_input.setMinimumHeight(38)
+        self.message_input.setMaximumHeight(140)
+        self.message_input.setAcceptRichText(False)
+        self.message_input.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
+        self.message_input.textChanged.connect(self._adjust_input_height)
+        self.message_input.send_requested.connect(self.send_message)
         self.message_input.setStyleSheet(
             """
-            QLineEdit {
+            QTextEdit {
                 background: #0d1020;
                 color: #f5f7ff;
                 border: 1px solid #2c3550;
                 border-radius: 10px;
-                padding: 0 12px;
+                padding: 6px 12px;
             }
-            QLineEdit:focus {
+            QTextEdit:focus {
                 border: 1px solid #4f79ff;
             }
             """
         )
-        self.message_input.returnPressed.connect(self.send_message)
+
+        # Providers Combox
+        self.providers = UpwardComboBox()
+        self.providers.setPlaceholderText("Select Provider")
+        self.items = [
+            "OpenAI",
+            "Google",
+            "Anthropic",
+            "Ollama Cloud"
+        ]
+        self.providers.addItems(self.items)
+        self.providers.setMinimumHeight(38)
+        self.providers.currentTextChanged.connect(self.get_provider)
+        self.providers.setStyleSheet("""
+                            QComboBox {
+                                    background: #161b22;
+                                    border: 1px solid #30363d;
+                                    border-radius: 10px;
+                                    color: #f0f6fc;
+                                    padding: 8px 10px;
+                                    selection-background-color: #2f81f7;
+                                }
+                                     
+            """)
 
         self.send_btn = QPushButton()
         self.send_btn.setIcon(
@@ -136,6 +210,7 @@ class AIChatbotScreen(BaseScreen):
         self.send_btn.clicked.connect(self.send_message)
 
         input_layout.addWidget(self.message_input, 1)
+        input_layout.addWidget(self.providers)
         input_layout.addWidget(self.send_btn)
 
         layout.addWidget(toolbar, 0)
@@ -146,42 +221,49 @@ class AIChatbotScreen(BaseScreen):
             "bot",
             "Hi! I am your game assistant. Ask me for free-to-play game suggestions.",
         )
+        self._adjust_input_height()
 
     def send_message(self):
-        text = self.message_input.text().strip()
+        text = self.message_input.toPlainText().strip()
         if not text:
             return
 
         self._append_message("user", text)
         self.message_input.clear()
+        self._adjust_input_height()
 
         self.send_btn.setDisabled(True)
-        QTimer.singleShot(250, lambda: self._bot_reply(text))
+        self._start_typing_indicator()
+        self.chat_worker = model_worker.ModelChatWorker(self.chat_client, self.provider, text)
+        self.chat_worker.completed.connect(self._bot_reply)
+        self.chat_worker.finished.connect(self.chat_worker.deleteLater)
+        self.chat_worker.start()
 
-    def _bot_reply(self, user_message: str):
-        reply = (
-            "I received: "
-            f"'{user_message}'.\n"
-            "AI backend is not connected yet, but the chat UI is ready."
-        )
-        self._append_message("bot", reply)
+    def _bot_reply(self, result):
+        if isinstance(result, tuple) and len(result) >= 2 and result[0] is False:
+            reply = f"Error: {result[1]}"
+        elif isinstance(result, str):
+            reply = result
+        else:
+            reply = "I could not parse the model response."
+
+        self._stop_typing_indicator(reply)
         self.send_btn.setDisabled(False)
         self.message_input.setFocus()
 
-    def _append_message(self, sender: str, text: str):
+    def _append_message(self, sender: str, text: str, markdown: bool = False):
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
 
-        bubble = QLabel(text)
-        bubble.setWordWrap(True)
-        bubble.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse
-        )
-        bubble.setMaximumWidth(360)
-        bubble.setSizePolicy(QSizePolicy.Policy.Maximum,
-                             QSizePolicy.Policy.Preferred)
-
         if sender == "user":
+            bubble = QLabel(text)
+            bubble.setWordWrap(True)
+            bubble.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextSelectableByMouse
+            )
+            bubble.setMaximumWidth(360)
+            bubble.setSizePolicy(QSizePolicy.Policy.Maximum,
+                                 QSizePolicy.Policy.Preferred)
             row.addStretch(1)
             bubble.setStyleSheet(
                 """
@@ -195,21 +277,50 @@ class AIChatbotScreen(BaseScreen):
             )
             row.addWidget(bubble)
         else:
+            bubble = QTextBrowser()
+            bubble.setOpenExternalLinks(True)
+            bubble.setFrameShape(QFrame.Shape.NoFrame)
+            bubble.setReadOnly(True)
+            bubble.setUndoRedoEnabled(False)
+            bubble.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+            )
+            bubble.setHorizontalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+            )
+            bubble.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
+            bubble.setWordWrapMode(QTextOption.WrapMode.WrapAnywhere)
+            bubble.setSizePolicy(QSizePolicy.Policy.Maximum,
+                                 QSizePolicy.Policy.Preferred)
+            bubble.document().setDefaultStyleSheet(
+                (
+                    "p, li { white-space: pre-wrap; overflow-wrap: anywhere; }"
+                    "pre, code { white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere; }"
+                )
+            )
             bubble.setStyleSheet(
                 """
-                QLabel {
+                QTextBrowser {
                     background: #1b2238;
                     color: #e8ecf9;
                     border-radius: 15px;
                     padding: 10px 12px;
+                    border: none;
                 }
                 """
             )
+            if markdown:
+                bubble.setMarkdown(text)
+            else:
+                bubble.setPlainText(text)
+            self._fit_bot_bubble_height(bubble)
+            self.bot_bubbles.append(bubble)
             row.addWidget(bubble)
             row.addStretch(1)
 
         self.chat_layout.addLayout(row)
         QTimer.singleShot(0, self._scroll_to_bottom)
+        return bubble
 
     def _scroll_to_bottom(self):
         scrollbar = self.chat_scroll.verticalScrollBar()
@@ -221,6 +332,7 @@ class AIChatbotScreen(BaseScreen):
             title = "Oops"
             message = "./config.yaml file is not found! Please recheck it create new one."
             error = QMessageBox()
+            error.setWindowIcon(app_window_icon())
             error.setWindowTitle(title)
             error.setText(message)
             error.setIcon(QMessageBox.Icon.Critical)
@@ -230,3 +342,54 @@ class AIChatbotScreen(BaseScreen):
 
         db_dialog = ModelAuthDialog.AuthDialog()
         db_dialog.exec()
+    
+    def get_provider(self, model_provider):
+        self.provider = model_provider
+
+    def _adjust_input_height(self):
+        doc_height = int(self.message_input.document().size().height())
+        min_height = 38
+        max_height = 140
+        target = max(min_height, min(max_height, doc_height + 14))
+        self.message_input.setFixedHeight(target)
+
+    def _start_typing_indicator(self):
+        self.typing_dot_count = 0
+        self.typing_bubble = self._append_message("bot", "Typing")
+        self.typing_timer.start()
+
+    def _update_typing_indicator(self):
+        if self.typing_bubble is None:
+            self.typing_timer.stop()
+            return
+        self.typing_dot_count = (self.typing_dot_count + 1) % 4
+        text = f"Typing{'.' * self.typing_dot_count}"
+        self.typing_bubble.setPlainText(text)
+        self._fit_bot_bubble_height(self.typing_bubble)
+        self._scroll_to_bottom()
+
+    def _stop_typing_indicator(self, final_reply: str):
+        self.typing_timer.stop()
+        if self.typing_bubble is not None:
+            self.typing_bubble.setMarkdown(final_reply)
+            self._fit_bot_bubble_height(self.typing_bubble)
+            self.typing_bubble = None
+            self.typing_dot_count = 0
+            self._scroll_to_bottom()
+            return
+
+        self._append_message("bot", final_reply, markdown=True)
+
+    def _fit_bot_bubble_height(self, bubble: QTextBrowser):
+        available_width = self.chat_scroll.viewport().width()
+        bubble_width = max(220, min(540, int(available_width * 0.72)))
+        bubble.setFixedWidth(bubble_width)
+        bubble.document().setTextWidth(bubble_width - 24)
+        doc_height = int(bubble.document().size().height())
+        bubble.setFixedHeight(doc_height + 24)
+        bubble.updateGeometry()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        for bubble in self.bot_bubbles:
+            self._fit_bot_bubble_height(bubble)

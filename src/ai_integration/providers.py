@@ -17,4 +17,4 @@ ANTHROPIC_MODEL = models_config["anthropic"]["model"]
 
 # Ollama Cloud
 OLLAMA_CLOUD_API_KEY = models_config["ollama_cloud"]["api_key"]
-OLLAMA_CLOUd_MODEL = models_config["ollama_cloud"]["model"]
+OLLAMA_CLOUD_MODEL = models_config["ollama_cloud"]["model"]
