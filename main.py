@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QIcon, QCursor
 from PyQt6.QtCore import QSize, Qt
 from src.screens.giveaway_screens.screens import Screen
+from src.app_icon import app_window_icon, resource_path
 import qtawesome as qta
 from style import styling
 
@@ -26,6 +27,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("buddy")
+        self.setWindowIcon(app_window_icon())
         self.setFixedSize(580, 640)
 
         self._is_sidebar_open = True
@@ -63,13 +65,13 @@ class MainWindow(QMainWindow):
         nav_items = [
             ("all", " Free Games", "fa5s.tags", styling.all_free_games_section_btn, "black", "All Free to Play Games", Screen.all_games),
             ("ai", " Chatbot ", "fa5s.robot", styling.ai_chat_section_btn, "black", "AI powered chat", Screen.ai_chat),
-            ("epic_games", " Epic Games", "./icons/epic_games.png", styling.epic_games_section_btn, "black", "Epic Games Giveaways", Screen.epic_games),
+            ("epic_games", " Epic Games", resource_path("icons", "epic_games.png"), styling.epic_games_section_btn, "black", "Epic Games Giveaways", Screen.epic_games),
             ("steam", " Steam", "fa6b.steam", styling.steam_section_btn, "white", "Steam Giveaways", Screen.steam),
-            ("ubisoft", " Ubisoft", "./icons/ubisoft.png", styling.ubisoft_section_btn, "black", "Ubisoft Giveaways", Screen.ubisoft),
-            ("battlenet", " Battlenet", "./icons/battlenet.png", styling.battlenet_section_btn, "blue", "Battlenet Giveaways", Screen.battlenet),
+            ("ubisoft", " Ubisoft", resource_path("icons", "ubisoft.png"), styling.ubisoft_section_btn, "black", "Ubisoft Giveaways", Screen.ubisoft),
+            ("battlenet", " Battlenet", resource_path("icons", "battlenet.png"), styling.battlenet_section_btn, "blue", "Battlenet Giveaways", Screen.battlenet),
             ("xbox", " Xbox", "fa6b.xbox", styling.xbox_section_btn, "white", "Xbox Gaming Stuff Giveaways", Screen.xbox),
             ("playstation", " PlayStation", "fa5b.playstation", styling.playstation_section_btn, "black", "PlayStation Gaming Stuff Giveaways", Screen.playstation),
-            ("switch", " Switch", "./icons/switch.png", styling.switch_section_btn, "white", "Switch Gaming Stuff Giveaways", Screen.switch),
+            ("switch", " Switch", resource_path("icons", "switch.png"), styling.switch_section_btn, "white", "Switch Gaming Stuff Giveaways", Screen.switch),
             ("android", " Android", "fa6b.android", styling.android_section_btn, "green", "Android Games Giveaways", Screen.android),
             ("ios", " iOS", "fa6b.apple", styling.ios_section_btn, "white", "iOS Games Giveaways", Screen.ios),
         ]
@@ -185,6 +187,7 @@ class MainWindow(QMainWindow):
 
 def main() -> None:
     app = QApplication(sys.argv)
+    app.setWindowIcon(app_window_icon())
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
