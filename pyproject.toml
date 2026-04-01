@@ -1,12 +1,10 @@
 [project]
 name = "buddy"
 version = "0.1.0"
-description = "Add your description here"
+description = "A desktop app for gamers to discover free-to-play games, platform giveaways."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "auto-py-to-exe>=2.50.0",
-    "httpx>=0.28.1",
     "langchain>=1.2.13",
     "langchain-anthropic>=1.4.0",
     "langchain-google-genai>=4.2.1",

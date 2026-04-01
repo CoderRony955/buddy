@@ -58,8 +58,6 @@
                 line-height: 1.4em;
             }
             """
-    
-    
 
     search_btn = """
     
@@ -156,7 +154,7 @@
             
     
     """
-    
+
     battlenet_section_btn = """
     QPushButton#battlenet {
                 min-height: 38px;
@@ -170,13 +168,13 @@
             }
     
     QPushButton#battlenet:hover {
-                background: #fcfcfc;
+                background: #949494;
                 color: black;
             }
             
     
     """
-    
+
     xbox_section_btn = """
     QPushButton#xbox {
                 min-height: 38px;
@@ -196,7 +194,7 @@
             
     
     """
-    
+
     playstation_section_btn = """
     QPushButton#playstation {
                 min-height: 38px;
@@ -216,7 +214,7 @@
             
     
     """
-    
+
     switch_section_btn = """
     QPushButton#switch {
                 min-height: 38px;
@@ -255,7 +253,7 @@
             }
             
     """
-    
+
     ios_section_btn = """
     QPushButton#ios {
                 min-height: 38px;
@@ -274,7 +272,7 @@
             }
             
     """
-    
+
     ai_chat_section_btn = """
     QPushButton#ai {
                 min-height: 38px;
@@ -304,4 +302,3 @@
             }
            
     """
-    
