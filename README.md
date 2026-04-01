@@ -26,7 +26,7 @@
     - [Linux](#linux)
     - [macOS](#macos)
   - [3. Install Dependencies](#3-install-dependencies)
-  - [4. Renmame `example.config.yaml` to `config.yaml`](#4-renmame-exampleconfigyaml-to-configyaml)
+  - [4. Rename `example.config.yaml` to `config.yaml`](#4-renmame-exampleconfigyaml-to-configyaml)
     - [Windows (PowerShell)](#windows-powershell-1)
     - [Linux/macOS](#linuxmacos)
   - [5. Run The App](#5-run-the-app)
