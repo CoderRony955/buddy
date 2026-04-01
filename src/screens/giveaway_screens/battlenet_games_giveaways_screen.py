@@ -53,7 +53,7 @@ class CustomWebEngineView(QWebEngineView):
 
 class BattlenetScreen(BaseScreen):
     def __init__(self):
-        super().__init__("BattlenetScreen", "Free-to-play titles currently tracked from the Battlenet.")
+        super().__init__("Battlenet", "Free-to-play titles currently tracked from the Battlenet.")
 
         layout = self.layout()
         hlayout = QHBoxLayout()
